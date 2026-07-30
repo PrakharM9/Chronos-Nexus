@@ -1,70 +1,90 @@
 # 🕒 Chronos-Nexus – Temporal Contradiction Engine
 
-**Chronos-Nexus** is an AI-powered "Temporal Contradiction Engine" designed to answer queries by analyzing how facts, policies, and narratives evolve over time (specifically across **2024 → 2025 → 2026**). 
+**Chronos-Nexus** is an AI-powered "Temporal Contradiction Engine" designed to answer queries by analyzing how facts, policies, and narratives evolve over time (specifically across **2024 → 2025 → 2026**).
 
-Unlike standard chatbots that provide a static, single answer, Chronos-Nexus explicitly highlights reversals, shifts, and contradictions across different years.
-
----
-
-## 🎯 Features
-
-- **Temporal Search**: Searches the live web using Tavily, partitioning results by target years (2024, 2025, 2026).
-- **RAG-based Context Retrieval**: Embeds yearly reports and retrieves context relevant to the user query using Gemini Embeddings and a Chroma vector store.
-- **Contradiction Detection**: Employs an LLM to identify changes and reversals across the timeline.
-- **Long-Term Memory Alerts**: Remembers past user queries. If a new query yields findings that contradict a past query, it triggers a memory alert to notify you of the shift.
-- **Auto-Export**: Automatically exports the generated temporal report to a Markdown file.
-- **Streamlit Interface**: Clean, reactive web interface for interacting with the engine and viewing raw data, analysis, and memory logs.
+Unlike standard RAG chatbots that assume truth is static, Chronos-Nexus actively detects policy reversals, scientific disagreements, and market shifts, providing a structured Evolution Brief for any open-domain topic (Finance, Politics, Technology, Healthcare, etc.).
 
 ---
 
-## 🛠️ Architecture & Tech Stack
+## 🎯 Key Features
 
-Chronos-Nexus is built as a state graph agent using **LangGraph**:
-
-1. **Orchestrator/Graph State**: Tracks the conversation history, yearly data, RAG context, and contradiction logs.
-2. **LLM Engine**: Supports **xAI Grok** or **Groq Cloud (Llama 3.3)** with automatic fallback to **Google Gemini** depending on available API keys.
-3. **Embeddings**: Uses Google Generative AI embeddings.
-4. **Search Tool**: Live search using Tavily.
-5. **Memory Store**: Custom `InMemoryStore` for long-term historical query tracking.
+| Feature | Description |
+| :--- | :--- |
+| 🔍 **Temporal RAG** | Indexes data from 2024, 2025, and 2026 into a Chroma vector store. Semantic retrieval ensures the most relevant historical context is fetched. |
+| 🛠️ **Intelligent Tool Calling** | The LangGraph agent autonomously calls web search (Tavily), fact-checkers, confidence/volatility scorers, and a report exporter to enrich the analysis. |
+| 🧠 **Dual-Layer Memory** | Short-term (`MemorySaver`) maintains conversation context. Long-term (`InMemoryStore`) alerts the user if new 2026 findings contradict their previous queries from earlier sessions. |
+| 🔄 **Cyclic LangGraph Workflow** | A state-machine loop: Search → RAG → Contradiction Detection → (if contradiction found → Call Tools → Loop Back to RAG) → Memory Update → Report. |
+| 📊 **Streamlit UI** | Beautiful, tabbed interface with markdown rendering, raw data inspection, memory visualization, and a download button for the report. |
 
 ---
 
-## 🚀 Setup & Installation
+## 🛠️ Tech Stack & Architecture
+
+Chronos-Nexus is built as a cyclic state machine using **LangGraph**:
+
+- **Orchestration**: LangChain + LangGraph (Cyclic State Machine)
+- **LLM**: **xAI Grok** (`grok-2-1212`) or **Groq Cloud** (`llama-3.3-70b-versatile`) with fallback to **Google Gemini 2.0 Flash**
+- **Embeddings**: Google Generative AI Embeddings (`models/embedding-001`)
+- **Vector DB**: Chroma (In-Memory)
+- **Web Search**: Tavily Search API (falls back to Smart Mock Data if API key is missing)
+- **Frontend**: Streamlit
+
+---
+
+## 📦 Installation & Setup
 
 ### 1. Prerequisites
 Ensure you have **Python 3.11+** installed.
 
-### 2. Install Dependencies
-Clone the repository and install the required packages:
+### 2. Clone and Setup
+```bash
+git clone https://github.com/PrakharM9/Chronos-Nexus.git
+cd Chronos-Nexus
+```
+
+### 3. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Environment Configuration
-Create a `.env` file in the root directory (based on the provided template) and add your API keys:
+### 4. Environment Variables
+Create a `.env` file in the root directory and add your API keys:
 ```env
-# Required for LLM (Grok/Groq) and Embeddings (Gemini)
-GROQ_API_KEY="your-groq-key-here"
-GROK_API_KEY="your-xai-grok-key-here"
-GEMINI_API_KEY="your-gemini-key-here"
+# Required for LLM (Grok or Groq)
+GROK_API_KEY="your_xai_grok_key_here"
+GROQ_API_KEY="your_groq_api_key_here"
 
-# Required for Web Searching
-TAVILY_API_KEY="your-tavily-key-here"
+# Required for Vector Embeddings
+GEMINI_API_KEY="your_gemini_api_key_here"
+
+# Required for Live Web Search
+TAVILY_API_KEY="your_tavily_api_key_here"
 ```
 
 ---
 
-## 💻 How to Run
+## 🚀 How to Run
 
-### Command Line Interface
-To run the CLI chatbot interface:
+### Option A: Command-Line Chatbot
 ```bash
 python code.py
 ```
 
-### Streamlit Web App
-To run the web interface:
+### Option B: Streamlit Web UI (Recommended)
 ```bash
 streamlit run streamlit_app.py
 ```
 Open `http://localhost:8501` in your browser.
+
+---
+
+## 📂 Project Structure
+
+```text
+chronos-nexus/
+├── code.py                  # Core LangGraph workflow (RAG, Tools, Memory, Agents)
+├── streamlit_app.py         # Streamlit UI interface
+├── requirements.txt         # Python dependencies
+├── .env                     # API keys config
+└── README.md                # Project documentation
+```
