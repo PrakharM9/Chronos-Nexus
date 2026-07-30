@@ -1,0 +1,31 @@
+# Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local environment variables (Contains private keys!)
+.env
+
+# IDE and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Database and temporary storage
+chroma/
+chroma_db/
+*temp_*
+
+# Local generated reports
+chronos_latest_report.md
+chronos_report_*.md
