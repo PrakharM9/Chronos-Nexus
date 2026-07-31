@@ -136,16 +136,27 @@ def web_search_temporal(query: str, year: int) -> str:
     """Searches the web for a given query filtered for a specific year."""
     if tavily_tool:
         try:
-            # ✅ FIX 2: Changed from .search() to .invoke()
             results = tavily_tool.invoke({"query": f"{query} {year} news"})
             formatted = f"--- Results for {year} ---\n"
-            # Handle if results is a list of dicts or just a string
+
+            # Handle list of dicts (TavilySearchResults / legacy)
             if isinstance(results, list):
-                for res in results[:3]:
-                    formatted += f"Title: {res.get('title', '')}\nContent: {res.get('content', '')}\nURL: {res.get('url', '')}\n\n"
+                items = results[:3]
+            # Handle dict with a 'results' key (newer TavilySearch)
+            elif isinstance(results, dict) and "results" in results:
+                items = results["results"][:3]
             else:
-                formatted += str(results)
-            return formatted
+                # Fallback: unknown format – use mock instead of dumping raw
+                return generate_smart_mock(query, year)
+
+            for res in items:
+                title   = res.get("title", "").strip()
+                content = res.get("content", "").strip()
+                url     = res.get("url", "").strip()
+                if content:
+                    formatted += f"Title: {title}\nContent: {content}\nURL: {url}\n\n"
+
+            return formatted if formatted.strip() != f"--- Results for {year} ---" else generate_smart_mock(query, year)
         except Exception as e:
             return f"Error searching {year}: {str(e)}"
     else:
@@ -156,10 +167,18 @@ def fact_check_db_lookup(claim: str) -> str:
     """Queries fact-checking databases."""
     if tavily_tool:
         try:
-            # ✅ FIX 2: Changed from .search() to .invoke()
             results = tavily_tool.invoke({"query": f"fact check {claim} 2026"})
-            if results and isinstance(results, list):
-                return f"Fact-check: {results[0].get('content', 'No clear debunking.')}"
+
+            # Resolve to a list of result dicts regardless of return type
+            if isinstance(results, list):
+                items = results
+            elif isinstance(results, dict) and "results" in results:
+                items = results["results"]
+            else:
+                items = []
+
+            if items:
+                return f"Fact-check: {items[0].get('content', 'No clear debunking.')}"
             return "Fact-check: No specific debunking found."
         except Exception as e:
             return f"Fact-check service unavailable: {e}"
