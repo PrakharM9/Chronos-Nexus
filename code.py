@@ -292,12 +292,32 @@ def update_long_term_memory(state: ChronosState) -> Dict:
 
 def generate_final_report(state: ChronosState) -> Dict:
     try:
+        # --- 1. Extract the investigation results from the state ---
+        
+        # A. Extract the contradiction summary (from detect_contradictions)
+        contradiction_summary = ""
+        if state.get("contradictions"):
+            contradiction_summary = state["contradictions"][0]  # First contradiction found
+        
+        # B. Extract fact-check and confidence score from the ToolMessage list
+        fact_check_result = ""
+        confidence_result = ""
+        
+        for msg in state.get("messages", []):
+            if isinstance(msg, ToolMessage):
+                if "Fact-check" in msg.content or "MOCK Fact-check" in msg.content:
+                    fact_check_result = msg.content
+                if "Volatility" in msg.content or "Score" in msg.content:
+                    confidence_result = msg.content
+        
+        # C. Prepare the raw and RAG data
         raw_data = ""
         for year, data in state.get("years_data", {}).items():
             raw_data += f"**{year}**:\n{data}\n\n"
         
         full_context = f"RAW DATA:\n{raw_data}\n\nRAG RESULTS:\n{state.get('rag_context', '')}"
         
+        # --- 2. Enhanced Prompt that includes the investigation results ---
         prompt = ChatPromptTemplate.from_template(
             "You are a financial/historical analyst. Write a detailed 'Temporal Evolution Brief' for: '{query}'.\n"
             "Cover the timeline from {years}.\n"
@@ -307,23 +327,48 @@ def generate_final_report(state: ChronosState) -> Dict:
             "3. **2025 Transition**\n"
             "4. **2026 Current Reality**\n"
             "5. **Contradictions Found**\n"
-            "6. **Final Verdict**\n\n"
-            "DATA:\n{context}"
+            "6. **Investigation & Verification** (Include the fact-check and confidence findings here)\n"
+            "7. **Final Verdict**\n\n"
+            "DATA:\n{context}\n\n"
+            "--- INVESTIGATION RESULTS (from the contradiction loop) ---\n"
+            "Contradiction Detected: {contradiction}\n"
+            "Fact-Check Result: {fact_check}\n"
+            "Confidence/Volatility Score: {confidence}\n"
+            "\nUse the 'Investigation & Verification' section to explicitly mention what the fact-check and confidence tools found."
         )
+        
+        # --- 3. Invoke the LLM with all the extracted data ---
         result = (prompt | LLM).invoke({
             "query": state["query"],
             "years": str(YEARS_TO_CHECK),
-            "context": full_context[:3000]
+            "context": full_context[:3000],
+            "contradiction": contradiction_summary or "No contradiction detected.",
+            "fact_check": fact_check_result or "No fact-check performed.",
+            "confidence": confidence_result or "No confidence score calculated."
         })
         report_content = result.content
+        
     except Exception as e:
+        # --- 4. Fallback: Still try to include the investigation data ---
         print(f"⚠️ LLM generation failed ({e}). Using raw data fallback.")
         report_content = f"# 🗂️ Chronos-Nexus Report\n\n**Topic:** {state['query']}\n\n"
+        
+        # Add contradiction info if available
+        if state.get("contradictions"):
+            report_content += f"**Contradiction Detected:** {state['contradictions'][0][:200]}...\n\n"
+        
+        # Add raw data
         for year, data in state.get("years_data", {}).items():
             report_content += f"## 📌 {year}\n{data}\n\n"
+        
+        # Add tool outputs if available
+        for msg in state.get("messages", []):
+            if isinstance(msg, ToolMessage):
+                report_content += f"**Tool Output:** {msg.content}\n\n"
     
+    # --- 5. Export the report ---
     export_report.invoke({"content": report_content})
-    return {"final_report": report_content, "messages": [AIMessage(content="✅ Report exported.")]}
+    return {"final_report": report_content, "messages": [AIMessage(content="✅ Report exported with investigation results.")]}
 
 # ==================== 7. BUILD GRAPH ====================
 def should_loop(state: ChronosState) -> Literal["execute_tools", "update_memory"]:
