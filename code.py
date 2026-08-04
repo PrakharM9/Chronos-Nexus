@@ -256,11 +256,19 @@ def detect_contradictions(state: ChronosState) -> Dict:
 
 def execute_additional_tools(state: ChronosState) -> Dict:
     text = state["rag_context"][:1000]
+    
+    # Call tools
+    fact_result = fact_check_db_lookup.invoke({"claim": text})
+    confidence_result = confidence_scorer.invoke({"analysis": text})
+    
+    new_iteration_count = state.get("iteration_count", 0) + 1
+    
     return {
         "messages": [
-            ToolMessage(content=fact_check_db_lookup.invoke({"claim": text}), tool_call_id="fc"),
-            ToolMessage(content=confidence_scorer.invoke({"analysis": text}), tool_call_id="cs")
-        ]
+            ToolMessage(content=fact_result, tool_call_id="fc"),
+            ToolMessage(content=confidence_result, tool_call_id="cs")
+        ],
+        "iteration_count": new_iteration_count  # <--- THIS STOPS THE LOOP
     }
 
 def update_long_term_memory(state: ChronosState) -> Dict:

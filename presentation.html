@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Chronos-Nexus – Presentation</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #080c14;
+    --surface:  #0d1523;
+    --card:     #111d2e;
+    --border:   #1e3a5f;
+    --accent1:  #00d4ff;
+    --accent2:  #7c5cff;
+    --accent3:  #ff6b6b;
+    --accent4:  #00e5a0;
+    --text:     #e8f4fd;
+    --muted:    #6b8db5;
+    --gold:     #f5c842;
+  }
+
+  html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: 'Inter', sans-serif; color: var(--text); }
+
+  /* ── SLIDES ── */
+  #deck { width: 100vw; height: 100vh; position: relative; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    padding: 60px 80px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .5s ease, transform .5s ease;
+    transform: translateY(30px);
+  }
+  .slide.active { opacity: 1; pointer-events: all; transform: translateY(0); }
+  .slide.exit   { opacity: 0; transform: translateY(-30px); }
+
+  /* ── BACKGROUND GRID ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── GLOW ORBS ── */
+  .orb {
+    position: fixed; border-radius: 50%; filter: blur(120px);
+    pointer-events: none; z-index: 0;
+  }
+  .orb1 { width: 500px; height: 500px; background: rgba(124,92,255,.15); top: -100px; left: -100px; }
+  .orb2 { width: 400px; height: 400px; background: rgba(0,212,255,.10); bottom: -80px; right: -80px; }
+  .orb3 { width: 300px; height: 300px; background: rgba(0,229,160,.08); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+
+  .slide > * { position: relative; z-index: 1; }
+
+  /* ── NAVIGATION ── */
+  #nav {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 16px; z-index: 100;
+    background: rgba(13,21,35,.8); backdrop-filter: blur(12px);
+    border: 1px solid var(--border); border-radius: 50px;
+    padding: 10px 24px;
+  }
+  #nav button {
+    background: none; border: none; cursor: pointer; color: var(--accent1);
+    font-size: 20px; width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .2s;
+  }
+  #nav button:hover { background: rgba(0,212,255,.12); }
+  #slide-counter { font-size: 13px; color: var(--muted); min-width: 60px; text-align: center; }
+  .progress-bar {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent1));
+    transition: width .4s ease; z-index: 200;
+  }
+
+  /* ── SLIDE NUMBER DOTS ── */
+  #dots {
+    position: fixed; right: 28px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 8px; z-index: 100;
+  }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border); cursor: pointer;
+    transition: background .3s, transform .3s;
+  }
+  .dot.active { background: var(--accent1); transform: scale(1.4); }
+
+  /* ── TYPOGRAPHY ── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent1); border: 1px solid rgba(0,212,255,.3);
+    border-radius: 20px; padding: 4px 14px; margin-bottom: 20px;
+  }
+  h1.hero {
+    font-size: clamp(2.8rem, 5vw, 4.5rem); font-weight: 900; line-height: 1.05;
+    text-align: center;
+    background: linear-gradient(135deg, #fff 0%, var(--accent1) 50%, var(--accent2) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 20px;
+  }
+  h2.slide-title {
+    font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 800;
+    background: linear-gradient(90deg, #fff, var(--accent1));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  .sub { font-size: clamp(.95rem, 1.5vw, 1.15rem); color: var(--muted); line-height: 1.7; max-width: 700px; text-align: center; }
+  .tag { font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent2); margin-bottom: 12px; }
+
+  /* ── CARDS ── */
+  .card-grid { display: grid; gap: 16px; width: 100%; max-width: 1100px; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px;
+    transition: border-color .3s, transform .3s;
+    position: relative; overflow: hidden;
+  }
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent1));
+    opacity: 0; transition: opacity .3s;
+  }
+  .card:hover::before { opacity: 1; }
+  .card:hover { border-color: rgba(0,212,255,.4); transform: translateY(-3px); }
+  .card-icon { font-size: 2rem; margin-bottom: 12px; display: block; }
+  .card h3 { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
+  .card p  { font-size: .85rem; color: var(--muted); line-height: 1.6; }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow { display: flex; align-items: center; gap: 0; width: 100%; max-width: 1000px; flex-wrap: wrap; justify-content: center; }
+  .flow-node {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px 20px; min-width: 130px; text-align: center;
+    position: relative;
+  }
+  .flow-node .fn-icon { font-size: 1.6rem; }
+  .flow-node .fn-label { font-size: .75rem; font-weight: 700; color: #fff; }
+  .flow-node .fn-sub   { font-size: .65rem; color: var(--muted); }
+  .flow-arrow { color: var(--accent1); font-size: 1.4rem; padding: 0 4px; }
+  .flow-node.highlight { border-color: var(--accent1); box-shadow: 0 0 20px rgba(0,212,255,.2); }
+  .flow-node.highlight2 { border-color: var(--accent2); box-shadow: 0 0 20px rgba(124,92,255,.2); }
+  .flow-node.highlight3 { border-color: var(--accent4); box-shadow: 0 0 20px rgba(0,229,160,.2); }
+
+  /* ── TECH STACK PILLS ── */
+  .pill-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 900px; }
+  .pill {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 30px; padding: 8px 18px;
+    font-size: .82rem; font-weight: 600; color: var(--text);
+    transition: border-color .3s, transform .2s;
+  }
+  .pill:hover { border-color: var(--accent1); transform: scale(1.05); }
+  .pill span { font-size: 1rem; }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: #060d1a; border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 24px;
+    font-family: 'JetBrains Mono', monospace; font-size: .78rem;
+    line-height: 1.8; color: #a8d8f0; max-width: 900px; width: 100%;
+    text-align: left;
+  }
+  .kw { color: var(--accent2); }
+  .fn { color: var(--accent1); }
+  .str { color: var(--accent4); }
+  .cm { color: #445a75; }
+
+  /* ── MEMORY DIAGRAM ── */
+  .mem-box {
+    background: var(--card); border-radius: 16px; padding: 24px 28px;
+    border: 1px solid var(--border); max-width: 460px; width: 100%;
+  }
+  .mem-box h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+  .mem-box p  { font-size: .82rem; color: var(--muted); line-height: 1.6; }
+  .mem-badge  { display: inline-block; font-size: .68rem; font-weight: 700; padding: 2px 10px; border-radius: 20px; margin-bottom: 10px; }
+
+  /* ── PROMPT CARD ── */
+  .prompt-card {
+    background: #06111f; border: 1px solid var(--accent2);
+    border-radius: 14px; padding: 20px 24px; max-width: 1000px; width: 100%;
+    font-family: 'JetBrains Mono', monospace; font-size: .76rem;
+    line-height: 1.9; color: #c8e6ff; text-align: left;
+  }
+  .prompt-label { font-size: .65rem; font-weight: 700; letter-spacing: 2px; color: var(--accent2); text-transform: uppercase; margin-bottom: 10px; }
+  .hl { color: var(--gold); font-weight: 600; }
+
+  /* ── STAT BOXES ── */
+  .stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; max-width: 1000px; width: 100%; }
+  .stat-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; text-align: center; }
+  .stat-num { font-size: 2.4rem; font-weight: 900; background: linear-gradient(135deg, var(--accent1), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .stat-label { font-size: .78rem; color: var(--muted); margin-top: 4px; }
+
+  /* ── TITLE SLIDE ── */
+  .hero-container { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 20px; max-width: 900px; }
+  .hero-sub { font-size: 1.1rem; color: var(--muted); max-width: 650px; line-height: 1.7; }
+  .hero-chips { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+  .chip { background: rgba(0,212,255,.08); border: 1px solid rgba(0,212,255,.2); border-radius: 20px; padding: 5px 14px; font-size: .78rem; color: var(--accent1); font-weight: 600; }
+
+  /* ── SECTION HEADER ── */
+  .slide-header { text-align: center; margin-bottom: 36px; }
+
+  /* ── TIMELINE STEP ── */
+  .timeline { display: flex; flex-direction: column; gap: 12px; max-width: 900px; width: 100%; }
+  .t-row { display: flex; align-items: flex-start; gap: 16px; }
+  .t-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .9rem; flex-shrink: 0; margin-top: 2px; }
+  .t-body h3 { font-size: .95rem; font-weight: 700; color: #fff; margin-bottom: 2px; }
+  .t-body p  { font-size: .8rem; color: var(--muted); line-height: 1.5; }
+  .t-line { width: 2px; height: 14px; background: var(--border); margin-left: 17px; }
+
+  /* ── CLOSING SLIDE ── */
+  .closing-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; max-width: 900px; width: 100%; margin-top: 28px; }
+  .c-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; text-align: center; }
+  .c-card .c-icon { font-size: 1.8rem; margin-bottom: 8px; }
+  .c-card h4 { font-size: .85rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .c-card p  { font-size: .75rem; color: var(--muted); }
+
+  /* ── KEYBOARD HINT ── */
+  .kb-hint { position: fixed; top: 20px; right: 28px; font-size: .72rem; color: var(--muted); z-index: 100; }
+  .kb-hint kbd { background: var(--card); border: 1px solid var(--border); border-radius: 5px; padding: 2px 7px; font-family: inherit; }
+
+  /* ── ANIMATE IN ── */
+  @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  .slide.active .anim { animation: fadeUp .5s ease both; }
+  .slide.active .anim:nth-child(1) { animation-delay: .05s; }
+  .slide.active .anim:nth-child(2) { animation-delay: .15s; }
+  .slide.active .anim:nth-child(3) { animation-delay: .25s; }
+  .slide.active .anim:nth-child(4) { animation-delay: .35s; }
+  .slide.active .anim:nth-child(5) { animation-delay: .45s; }
+</style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+<div class="progress-bar" id="progress"></div>
+<div class="kb-hint"><kbd>←</kbd> <kbd>→</kbd> to navigate</div>
+<div id="dots"></div>
+
+<div id="deck">
+
+  <!-- ═══════════════════════════════════════════ SLIDE 1 – TITLE -->
+  <div class="slide active" id="s1">
+    <div class="hero-container">
+      <div class="badge anim">🎓 Project Presentation</div>
+      <h1 class="hero anim">🕒 Chronos-Nexus</h1>
+      <p class="hero-sub anim">An AI-powered <strong style="color:var(--accent1)">Temporal Contradiction Engine</strong> that analyzes how facts evolve across time — revealing reversals, shifts, and contradictions from <strong>2024 → 2025 → 2026</strong>.</p>
+      <div class="hero-chips anim">
+        <span class="chip">LangGraph</span>
+        <span class="chip">RAG Pipeline</span>
+        <span class="chip">Groq / Grok / Gemini</span>
+        <span class="chip">Tavily Search</span>
+        <span class="chip">Streamlit</span>
+        <span class="chip">ChromaDB</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ SLIDE 2 – THE PROBLEM -->
+  <div class="slide" id="s2">
+    <div class="slide-header anim">
+      <div class="tag">The Problem</div>
+      <h2 class="slide-title">Why Static AI Fails</h2>
+    </div>
+    <div class="card-grid grid-3 anim" style="max-width:1000px">
+      <div class="card">
+        <span class="card-icon">🤖</span>
+        <h3>Static Answers</h3>
+        <p>Normal chatbots give <em>one answer</em> based on training data, ignoring how facts have evolved over the years.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">⏳</span>
+        <h3>Outdated Information</h3>
+        <p>In finance, politics, and healthcare — truth changes. A fact true in 2024 may be completely reversed by 2026.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">❌</span>
+        <h3>No Contradiction Detection</h3>
+        <p>Standard RAG systems assume truth is static. They cannot detect when their sources contradict each other across time.</p>
+      </div>
+    </div>
+    <div class="anim" style="margin-top:28px; padding: 20px 32px; background: linear-gradient(135deg, rgba(124,92,255,.12), rgba(0,212,255,.08)); border: 1px solid var(--border); border-radius: 16px; max-width: 700px; text-align:center;">
+      <p style="font-size:1rem; line-height:1.7; color:var(--text)">💡 <strong>Chronos-Nexus solves this</strong> by showing <span style="color:var(--accent1)">what was true</span>, <span style="color:var(--gold)">what changed</span>, and <span style="color:var(--accent4)">what is true now</span> — for any topic.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ SLIDE 3 – KEY FEATURES -->
+  <div class="slide" id="s3">
+    <div class="slide-header anim">
+      <div class="tag">Features</div>
+      <h2 class="slide-title">What Chronos-Nexus Does</h2>
+    </div>
+    <div class="card-grid" style="grid-template-columns:repeat(3,1fr);max-width:1050px;" class="anim">
+      <div class="card anim">
+        <span class="card-icon">🔍</span>
+        <h3>Temporal Web Search</h3>
+        <p>Searches the live web <em>3 times</em> — once for 2024, 2025, 2026 — using Tavily's AI-optimized search engine.</p>
+      </div>
+      <div class="card anim">
+        <span class="card-icon">🧬</span>
+        <h3>RAG Pipeline</h3>
+        <p>Embeds yearly results using Gemini Embeddings into ChromaDB, then retrieves the most semantically relevant chunks.</p>
+      </div>
+      <div class="card anim">
+        <span class="card-icon">⚡</span>
+        <h3>Contradiction Detection</h3>
+        <p>An LLM analyzes all 3 years of data and explicitly identifies reversals, policy shifts, and factual contradictions.</p>
+      </div>
+      <div class="card anim">
+        <span class="card-icon">🧠</span>
+        <h3>Dual-Layer Memory</h3>
+        <p>Short-term memory tracks conversation state. Long-term memory fires alerts when new findings overturn past queries.</p>
+      </div>
+      <div class="card anim">
+        <span class="card-icon">📊</span>
+        <h3>Volatility Scoring</h3>
+        <p>A confidence scorer rates how contradictory/volatile the topic is on a 0–100 scale using keyword heuristics.</p>
+      </div>
+      <div class="card anim">
+        <span class="card-icon">📄</span>
+        <h3>Structured Reports</h3>
+        <p>Generates a 6-section "Temporal Evolution Brief" with timeline analysis and auto-exports it as a Markdown file.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ SLIDE 4 – TECH STACK -->
+  <div class="slide" id="s4">
+    <div class="slide-header anim">
+      <div class="tag">Technology</div>
+      <h2 class="slide-title">Tech Stack</h2>
+    </div>
+    <div class="stat-grid anim" style="margin-bottom:28px">
+      <div class="stat-box"><div class="stat-num">3</div><div class="stat-label">LLM Providers Supported</div></div>
+      <div class="stat-box"><div class="stat-num">6</div><div class="stat-label">Graph Nodes</div></div>
+      <div class="stat-box"><div class="stat-num">4</div><div class="stat-label">Agent Tools</div></div>
+      <div class="stat-box"><div class="stat-num">2</div><div class="stat-label">Memory Layers</div></div>
+    </div>
+    <div class="pill-grid anim">
+      <div class="pill"><span>🔗</span> LangChain</div>
+      <div class="pill"><span>🕸️</span> LangGraph</div>
+      <div class="pill"><span>⚡</span> Groq — Llama 3.3 70B</div>
+      <div class="pill"><span>🌐</span> xAI Grok-2</div>
+      <div class="pill"><span>💎</span> Google Gemini 2.0 Flash</div>
+      <div class="pill"><span>🔮</span> Gemini Embeddings</div>
+      <div class="pill"><span>🔵</span> ChromaDB (Vector Store)</div>
+      <div class="pill"><span>🔎</span> Tavily Search API</div>
+      <div class="pill"><span>🌊</span> Streamlit UI</div>
+      <div class="pill"><span>🐍</span> Python 3.11+</div>
+      <div class="pill"><span>🔑</span> python-dotenv</div>
+      <div class="pill"><span>☁️</span> Streamlit Cloud</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ SLIDE 5 – ARCHITECTURE -->
+  <div class="slide" id="s5">
+    <div class="slide-header anim">
+      <div class="tag">Architecture</div>
+      <h2 class="slide-title">LangGraph State Machine</h2>
+      <p class="sub anim" style="font-size:.9rem">A cyclic directed graph where each node reads the shared state, performs its task, and writes back only what it changed.</p>
+    </div>
+    <div class="flow anim" style="gap:0 4px; margin-top: 10px;">
+      <div class="flow-node highlight">
+        <span class="fn-icon">🔎</span>
+        <span class="fn-label">search_years</span>
+        <span class="fn-sub">Tavily × 3 years</span>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node highlight2">
+        <span class="fn-icon">🧬</span>
+        <span class="fn-label">build_rag</span>
+        <span class="fn-sub">Chroma + Embeddings</span>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node highlight">
+        <span class="fn-icon">⚡</span>
+        <span class="fn-label">detect_contradictions</span>
+        <span class="fn-sub">LLM Analysis</span>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node" style="border-color:var(--accent3)">
+        <span class="fn-icon">🛠️</span>
+        <span class="fn-label">execute_tools</span>
+        <span class="fn-sub">If contradiction found</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;max-width:1000px;width:100%;margin-top:2px;margin-bottom:2px;">
+      <div style="margin-right:14px;color:var(--accent3);font-size:.78rem;">↑ loops back once if contradiction found</div>
+      <div style="height:16px;width:2px;background:var(--accent3);margin-right:135px;margin-top:2px;"></div>
+    </div>
+    <div class="flow anim" style="justify-content:flex-end; max-width:1000px; width:100%; gap: 4px;">
+      <div class="flow-node highlight3">
+        <span class="fn-icon">📝</span>
+        <span class="fn-label">generate_report</span>
+        <span class="fn-sub">LLM writes brief</span>
+      </div>
+      <span class="flow-arrow">←</span>
+      <div class="flow-node highlight3">
+        <span class="fn-icon">🧠</span>
+        <span class="fn-label">update_memory</span>
+        <span class="fn-sub">Long-term store</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ SLIDE 6 – HOW SEARCH WORKS -->
+  <div class="slide" id="s6">
+    <div class="slide-header anim">
+      <div class="tag">Node 1</div>
+      <h2 class="slide-title">Temporal Web Search</h2>
+    </div>
+    <div style="display:flex; gap:28px; align-items:flex-start; max-width:1050px; width:100%;">
+      <div style="flex:1;" class="anim">
+        <div class="timeline">
+          <div class="t-row">
+            <div class="t-dot" style="background:rgba(0,212,255,.15);color:var(--accent1);">1</div>
+            <div class="t-body"><h3>Query is Partitioned by Year</h3><p>The user's query (e.g. "US global power") is sent to Tavily 3 times with the year appended: <em>"US global power 2024 news"</em></p></div>
+          </div>
+          <div class="t-line"></div>
+          <div class="t-row">
+            <div class="t-dot" style="background:rgba(0,212,255,.15);color:var(--accent1);">2</div>
+            <div class="t-body"><h3>Tavily Returns Live Web Data</h3><p>Tavily is an AI-optimized search engine. It returns cleaned article content, not just links — perfect for feeding to an LLM.</p></div>
+          </div>
+          <div class="t-line"></div>
+          <div class="t-row">
+            <div class="t-dot" style="background:rgba(0,212,255,.15);color:var(--accent1);">3</div>
+            <div class="t-body"><h3>Results Cleaned & Formatted</h3><p>Code extracts only <code style="color:var(--accent4)">Title + Content + URL</code> for each result, discarding raw metadata. Falls back to smart mock data if Tavily is unavailable.</p></div>
+          </div>
+          <div class="t-line"></div>
+          <div class="t-row">
+            <div class="t-dot" style="background:rgba(0,212,255,.15);color:var(--accent1);">4</div>
+            <div class="t-body"><h3>Stored in State</h3><p>Results are saved as <code style="color:var(--accent4)">years_data = &#123;2024: "...", 2025: "...", 2026: "..."&#125;</code> and passed to the next node.</p></div>
+          </div>
+        </div>
+      </div>
+      <div style="flex:1;" class="anim">
+        <div class="code-block">
+<span class="cm"># For each of [2024, 2025, 2026]:</span>
+results = tavily.invoke(&#123;
+  <span class="str">"query"</span>: <span class="str">"US global power 2024 news"</span>
+&#125;)
+
+<span class="cm"># Extract clean text only</span>
+<span class="kw">for</span> res <span class="kw">in</span> items[:3]:
+  title   = res.<span class="fn">get</span>(<span class="str">"title"</span>)
+  content = res.<span class="fn">get</span>(<span class="str">"content"</span>)
+  url     = res.<span class="fn">get</span>(<span class="str">"url"</span>)
+
+<span class="cm"># years_data result:</span>
+&#123;
+  2024: <span class="str">"--- Results for 2024 ---\n
+          Title: US Hegemony Challenged...\n
+          Content: ..."</span>,
+  2025: <span class="str">"..."</span>,
+  2026: <span class="str">"..."</span>
+&#125;
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ SLIDE 7 – RAG PIPELINE -->
+  <div class="slide" id="s7">
+    <div class="slide-header anim">
+      <div class="tag">Node 2</div>
+      <h2 class="slide-title">RAG Pipeline — Retrieval-Augmented Generation</h2>
+    </div>
+    <div class="card-grid" style="grid-template-columns:repeat(4,1fr); max-width:1100px;" class="anim">
+      <div class="card anim" style="border-color:rgba(0,212,255,.3)">
+        <span class="card-icon">✂️</span>
+        <h3>Step 1: Chunk</h3>
+        <p>Each year's search results are split into paragraphs (split by double newline). Chunks shorter than 20 chars are discarded.</p>
+      </div>
+      <div class="card anim" style="border-color:rgba(124,92,255,.3)">
+        <span class="card-icon">🔮</span>
+        <h3>Step 2: Embed</h3>
+        <p>Every chunk is converted into a <strong>1536-dimensional vector</strong> using Gemini's <code>embedding-001</code> model. Similar text → similar vectors.</p>
+      </div>
+      <div class="card anim" style="border-color:rgba(0,229,160,.3)">
+        <span class="card-icon">🔵</span>
+        <h3>Step 3: Store</h3>
+        <p>All chunks + their vectors are stored in <strong>ChromaDB</strong> (in-memory vector database) with year metadata attached.</p>
+      </div>
+      <div class="card anim" style="border-color:rgba(245,200,66,.3)">
+        <span class="card-icon">🎯</span>
+        <h3>Step 4: Retrieve</h3>
+        <p>The user query is embedded and compared against all stored vectors. The <strong>top 5 most similar</strong> chunks are retrieved semantically.</p>
+      </div>
+    </div>
+    <div class="anim" style="margin-top:20px; max-width:900px; text-align:center; padding: 16px 24px; background: rgba(124,92,255,.08); border: 1px solid rgba(124,92,255,.3); border-radius: 12px;">
+      <p style="font-size:.9rem; color:var(--text)">💡 <strong>Why RAG?</strong> Raw search data can be 3000+ words. RAG uses <span style="color:var(--accent1)">semantic similarity</span> to find only the most relevant paragraphs — so the LLM sees focused, useful context instead of noise.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ SLIDE 8 – CONTRADICTION DETECTION PROMPT -->
+  <div class="slide" id="s8">
+    <div class="slide-header anim">
+      <div class="tag">Node 3 — Prompt 1</div>
+      <h2 class="slide-title">Contradiction Detection</h2>
+    </div>
+    <div class="prompt-card anim">
+      <div class="prompt-label">⚡ Contradiction Detection Prompt (sent to LLM)</div>
+      <span class="hl">Analyze this data from [2024, 2025, 2026].</span><br/>
+      Look for contradictions or reversals.<br/>
+      If you see clear disagreements between years, output <span class="hl">'CONTRADICTION_FOUND'</span>.<br/>
+      Otherwise output <span class="hl">'NO_CONTRADICTION'</span>.<br/><br/>
+      Data: <span style="color:var(--muted)">[top 5 RAG chunks — first 2000 characters]</span>
+    </div>
+    <div class="card-grid grid-2 anim" style="max-width:860px; margin-top:16px;">
+      <div class="card" style="border-color:rgba(0,229,160,.3)">
+        <span class="card-icon">✅</span>
+        <h3>If "CONTRADICTION_FOUND"</h3>
+        <p>The LLM's full response is saved to <code>contradictions[]</code>. The graph routes to <strong>execute_additional_tools</strong> for deeper fact-checking.</p>
+      </div>
+      <div class="card" style="border-color:rgba(0,212,255,.3)">
+        <span class="card-icon">➡️</span>
+        <h3>If "NO_CONTRADICTION"</h3>
+        <p>The <code>contradictions[]</code> list stays empty. The graph skips tools and routes directly to <strong>update_memory → generate_report</strong>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ SLIDE 9 – TOOLS -->
+  <div class="slide" id="s9">
+    <div class="slide-header anim">
+      <div class="tag">Node 4</div>
+      <h2 class="slide-title">Agent Tools</h2>
+    </div>
+    <div class="card-grid" style="grid-template-columns:repeat(2,1fr); max-width:900px;" class="anim">
+      <div class="card anim" style="border-color:rgba(0,212,255,.25)">
+        <span class="card-icon">🔎</span>
+        <h3>web_search_temporal (query, year)</h3>
+        <p>Searches Tavily for the query in a specific year. Called automatically 3× by <code>search_all_years</code>. Falls back to smart mock data if API unavailable.</p>
+      </div>
+      <div class="card anim" style="border-color:rgba(124,92,255,.25)">
+        <span class="card-icon">✅</span>
+        <h3>fact_check_db_lookup (claim)</h3>
+        <p>Takes the RAG context and cross-checks it with Tavily fact-checking searches. Only runs when a contradiction is detected.</p>
+      </div>
+      <div class="card anim" style="border-color:rgba(245,200,66,.25)">
+        <span class="card-icon">📊</span>
+        <h3>confidence_scorer (analysis)</h3>
+        <p>Counts volatility keywords (<em>however, but, reversed, changed, debate...</em>) in the context. Returns a score from 50–100. Simple but effective heuristic.</p>
+      </div>
+      <div class="card anim" style="border-color:rgba(0,229,160,.25)">
+        <span class="card-icon">💾</span>
+        <h3>export_report (content)</h3>
+        <p>Writes the final report to <code>chronos_latest_report.md</code> on disk. Called automatically after every query. Also available as a download in Streamlit.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ SLIDE 10 – MEMORY -->
+  <div class="slide" id="s10">
+    <div class="slide-header anim">
+      <div class="tag">Node 5</div>
+      <h2 class="slide-title">Dual-Layer Memory System</h2>
+    </div>
+    <div style="display:flex; gap:24px; align-items:stretch; max-width:960px; width:100%;" class="anim">
+      <div class="mem-box">
+        <div class="mem-badge" style="background:rgba(0,212,255,.12);color:var(--accent1);">SHORT-TERM</div>
+        <h3 style="color:var(--accent1)">MemorySaver</h3>
+        <p>Built into LangGraph. Saves the full <code>ChronosState</code> (messages, results, contradictions) after every node. Keyed by <code>thread_id</code>.</p>
+        <br/>
+        <p><strong style="color:#fff">Purpose:</strong> In-conversation continuity. Lets the graph resume from a crash. Shared between turns in the same session.</p>
+        <br/>
+        <p><strong style="color:#fff">Limitation:</strong> Wiped when the app restarts (in-memory only).</p>
+      </div>
+      <div style="display:flex; align-items:center; color:var(--muted); font-size:2rem;">+</div>
+      <div class="mem-box">
+        <div class="mem-badge" style="background:rgba(0,229,160,.12);color:var(--accent4);">LONG-TERM</div>
+        <h3 style="color:var(--accent4)">InMemoryStore</h3>
+        <p>A key-value store that persists <strong>across different queries</strong> in the same session. Namespace: <code>("memories", "global_user")</code> → key <code>"history"</code>.</p>
+        <br/>
+        <p><strong style="color:#fff">What it stores</strong> per query:</p>
+        <div class="code-block" style="margin-top:8px; font-size:.72rem;">&#123; timestamp, query, contradiction: True/False &#125;</div>
+        <br/>
+        <p><strong style="color:#fff">Memory Alert fires when:</strong> previous query is similar AND its contradiction status differs from the current one.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ SLIDE 11 – FINAL REPORT PROMPT -->
+  <div class="slide" id="s11">
+    <div class="slide-header anim">
+      <div class="tag">Node 6 — Prompt 2</div>
+      <h2 class="slide-title">Final Report Generation</h2>
+    </div>
+    <div class="prompt-card anim">
+      <div class="prompt-label">📝 Final Report Prompt (sent to LLM)</div>
+      You are a <span class="hl">financial/historical analyst</span>. Write a detailed <span class="hl">'Temporal Evolution Brief'</span> for: '<span class="hl">&#123;query&#125;</span>'.<br/>
+      Cover the timeline from <span class="hl">&#123;years&#125;</span>.<br/>
+      Structure your report:<br/>
+      &nbsp;&nbsp;1. <span class="hl">**Overview**</span><br/>
+      &nbsp;&nbsp;2. <span class="hl">**2024 Baseline**</span><br/>
+      &nbsp;&nbsp;3. <span class="hl">**2025 Transition**</span><br/>
+      &nbsp;&nbsp;4. <span class="hl">**2026 Current Reality**</span><br/>
+      &nbsp;&nbsp;5. <span class="hl">**Contradictions Found**</span><br/>
+      &nbsp;&nbsp;6. <span class="hl">**Final Verdict**</span><br/><br/>
+      DATA:<br/>
+      <span style="color:var(--muted)">[Raw search results from all 3 years + top 5 RAG chunks — first 3000 characters]</span>
+    </div>
+    <div class="anim" style="margin-top:14px; font-size:.82rem; color:var(--muted); max-width:900px; text-align:center;">
+      The 6-section structure forces the LLM to address each year <em>separately</em> and explicitly call out contradictions — preventing it from giving a single static answer.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ SLIDE 12 – STATE OBJECT -->
+  <div class="slide" id="s12">
+    <div class="slide-header anim">
+      <div class="tag">Core Data Structure</div>
+      <h2 class="slide-title">ChronosState — The Shared Whiteboard</h2>
+      <p class="sub anim" style="font-size:.85rem">Every node reads from and writes to this shared state dictionary. Nodes only update the keys they care about.</p>
+    </div>
+    <div class="code-block anim" style="max-width:900px;">
+<span class="kw">class</span> <span class="fn">ChronosState</span>(TypedDict):
+  messages:        <span class="cm"># Full LangGraph message history (auto-appended)</span>
+  query:           <span class="str">"Is the US losing global power?"</span>  <span class="cm"># User question</span>
+  years_data:      <span class="cm"># {2024: "search text...", 2025: "...", 2026: "..."}</span>
+  rag_context:     <span class="cm"># Top-5 semantically relevant chunks with year labels</span>
+  contradictions:  <span class="cm"># ["CONTRADICTION_FOUND — In 2024..."] or []</span>
+  memory_alert:    <span class="cm"># "🧠 MEMORY ALERT: ..." or ""</span>
+  final_report:    <span class="cm"># The full 6-section markdown report text</span>
+  iteration_count: <span class="cm"># 0 → 1 (prevents infinite contradiction loops)</span>
+    </div>
+    <div class="anim" style="margin-top:16px; max-width:900px; background:rgba(245,200,66,.06); border:1px solid rgba(245,200,66,.2); border-radius:12px; padding:14px 20px; font-size:.82rem; color:var(--text);">
+      💡 <code style="color:var(--gold)">iteration_count</code> is the loop guard — when a contradiction is found, the graph loops back through RAG <strong>at most once</strong>. Without this, the graph would loop infinitely every time a contradiction is detected.
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ SLIDE 13 – STREAMLIT UI -->
+  <div class="slide" id="s13">
+    <div class="slide-header anim">
+      <div class="tag">Frontend</div>
+      <h2 class="slide-title">Streamlit Web Interface</h2>
+    </div>
+    <div class="card-grid grid-3 anim" style="max-width:1000px;">
+      <div class="card anim" style="border-color:rgba(0,212,255,.25)">
+        <span class="card-icon">📄</span>
+        <h3>Report Tab</h3>
+        <p>Renders the LLM-generated <code>final_report</code> as formatted Markdown. Shows contradiction boxes and memory alerts with color-coded highlights.</p>
+      </div>
+      <div class="card anim" style="border-color:rgba(124,92,255,.25)">
+        <span class="card-icon">📈</span>
+        <h3>Raw Data Tab</h3>
+        <p>Shows the raw search results for each year in collapsible expanders, so you can inspect exactly what Tavily returned for 2024, 2025, 2026.</p>
+      </div>
+      <div class="card anim" style="border-color:rgba(0,229,160,.25)">
+        <span class="card-icon">🧠</span>
+        <h3>Memory Tab</h3>
+        <p>Reads directly from <code>InMemoryStore</code> and displays the JSON history of all past queries and their contradiction status in this session.</p>
+      </div>
+    </div>
+    <div style="display:flex; gap:16px; max-width:1000px; width:100%; margin-top:18px;" class="anim">
+      <div class="card" style="flex:1; border-color:rgba(245,200,66,.2)">
+        <span class="card-icon">📥</span>
+        <h3>Download Button</h3>
+        <p>One-click download of the report as a <code>.md</code> file with timestamp in filename.</p>
+      </div>
+      <div class="card" style="flex:1; border-color:rgba(255,107,107,.2)">
+        <span class="card-icon">🗑️</span>
+        <h3>Clear Memory Button</h3>
+        <p>Sidebar button to reset the long-term <code>InMemoryStore</code> for a fresh session.</p>
+      </div>
+      <div class="card" style="flex:1; border-color:rgba(0,229,160,.2)">
+        <span class="card-icon">☁️</span>
+        <h3>Deployed on Streamlit Cloud</h3>
+        <p>App is live at <code>chronos-nexus.streamlit.app</code>. API keys managed via Streamlit Secrets panel.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ SLIDE 14 – DATA FLOW SUMMARY -->
+  <div class="slide" id="s14">
+    <div class="slide-header anim">
+      <div class="tag">End-to-End</div>
+      <h2 class="slide-title">Complete Data Flow</h2>
+    </div>
+    <div class="timeline anim" style="max-width:900px;">
+      <div class="t-row">
+        <div class="t-dot" style="background:rgba(0,212,255,.15);color:var(--accent1);">1</div>
+        <div class="t-body"><h3>User asks: <em>"Is the US losing global power?"</em></h3><p>Query enters via Streamlit text input or CLI. Passed into <code>app.invoke()</code> with <code>iteration_count: 0</code>.</p></div>
+      </div>
+      <div class="t-line"></div>
+      <div class="t-row">
+        <div class="t-dot" style="background:rgba(0,212,255,.15);color:var(--accent1);">2</div>
+        <div class="t-body"><h3>Tavily searches for 2024, 2025, 2026 news</h3><p>3 API calls. Clean text results stored in <code>years_data</code> dict.</p></div>
+      </div>
+      <div class="t-line"></div>
+      <div class="t-row">
+        <div class="t-dot" style="background:rgba(124,92,255,.2);color:var(--accent2);">3</div>
+        <div class="t-body"><h3>Gemini embeds chunks → ChromaDB → semantic search</h3><p>Top 5 most relevant chunks retrieved. <code>rag_context</code> updated with year labels.</p></div>
+      </div>
+      <div class="t-line"></div>
+      <div class="t-row">
+        <div class="t-dot" style="background:rgba(124,92,255,.2);color:var(--accent2);">4</div>
+        <div class="t-body"><h3>LLM detects: <span style="color:var(--accent3)">CONTRADICTION_FOUND</span></h3><p>Groq/Gemini analyzes RAG context. Graph routes to <code>execute_tools</code>.</p></div>
+      </div>
+      <div class="t-line"></div>
+      <div class="t-row">
+        <div class="t-dot" style="background:rgba(255,107,107,.2);color:var(--accent3);">5</div>
+        <div class="t-body"><h3>Tools run: fact-check + volatility score</h3><p>Loops back through RAG once for enriched context. <code>iteration_count</code> → 1.</p></div>
+      </div>
+      <div class="t-line"></div>
+      <div class="t-row">
+        <div class="t-dot" style="background:rgba(0,229,160,.15);color:var(--accent4);">6</div>
+        <div class="t-body"><h3>Memory updated → Report generated</h3><p>LLM writes 6-section "Temporal Evolution Brief". Exported to <code>.md</code>. Displayed in Streamlit tabs.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ SLIDE 15 – THANK YOU -->
+  <div class="slide" id="s15">
+    <div class="hero-container">
+      <div class="badge anim">🎉 Thank You</div>
+      <h1 class="hero anim">Chronos-Nexus</h1>
+      <p class="hero-sub anim">Built to show that <strong style="color:var(--accent1)">truth is not static</strong> — and that AI can be designed to understand the evolution of facts over time.</p>
+      <div class="closing-grid anim">
+        <div class="c-card">
+          <div class="c-icon">🐙</div>
+          <h4>GitHub</h4>
+          <p>github.com/PrakharM9/Chronos-Nexus</p>
+        </div>
+        <div class="c-card">
+          <div class="c-icon">🌐</div>
+          <h4>Live App</h4>
+          <p>chronos-nexus.streamlit.app</p>
+        </div>
+        <div class="c-card">
+          <div class="c-icon">🛠️</div>
+          <h4>Stack</h4>
+          <p>LangGraph · Groq · Gemini · ChromaDB · Tavily · Streamlit</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /#deck -->
+
+<!-- ── NAVIGATION ── -->
+<div id="nav">
+  <button id="btn-prev" title="Previous (←)">&#8592;</button>
+  <span id="slide-counter">1 / 15</span>
+  <button id="btn-next" title="Next (→)">&#8594;</button>
+</div>
+
+<script>
+  const slides  = Array.from(document.querySelectorAll('.slide'));
+  const total   = slides.length;
+  const counter = document.getElementById('slide-counter');
+  const progress= document.getElementById('progress');
+  const dotsEl  = document.getElementById('dots');
+  let current   = 0;
+
+  // Build dots
+  slides.forEach((_,i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i===0?' active':'');
+    d.addEventListener('click', () => goTo(i));
+    dotsEl.appendChild(d);
+  });
+
+  function goTo(n) {
+    if(n < 0 || n >= total) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('exit');
+    setTimeout(() => slides[current].classList.remove('exit'), 500);
+    current = n;
+    slides[current].classList.add('active');
+    // update UI
+    counter.textContent = `${current+1} / ${total}`;
+    progress.style.width = `${((current+1)/total)*100}%`;
+    dotsEl.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i===current));
+  }
+
+  document.getElementById('btn-next').addEventListener('click', () => goTo(current+1));
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(current-1));
+
+  document.addEventListener('keydown', e => {
+    if(e.key==='ArrowRight'||e.key==='ArrowDown' ||e.key===' ') { e.preventDefault(); goTo(current+1); }
+    if(e.key==='ArrowLeft' ||e.key==='ArrowUp')   { e.preventDefault(); goTo(current-1); }
+    if(e.key==='Home') goTo(0);
+    if(e.key==='End')  goTo(total-1);
+  });
+
+  // Touch swipe
+  let tx = 0;
+  document.addEventListener('touchstart', e => tx = e.touches[0].clientX);
+  document.addEventListener('touchend',   e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if(Math.abs(dx) > 50) dx < 0 ? goTo(current+1) : goTo(current-1);
+  });
+
+  // Set initial progress
+  progress.style.width = `${(1/total)*100}%`;
+</script>
+</body>
+</html>
